@@ -141,7 +141,7 @@ observeReader = {
 		{
 			name: "function",
 			// if this is a function before the last read and its not a constructor function
-			test: function(value, i){
+			test: function(value){
 				return value && canReflect.isFunctionLike(value) && !canReflect.isConstructorLike(value);
 			},
 			read: function(value, i, reads, options, state, prev){
@@ -163,7 +163,7 @@ observeReader = {
 			test: function(value, i, reads, options) {
 				return value && value[getValueSymbol] && value[isValueLikeSymbol] !== false && (options.foundAt || !isAt(i, reads) );
 			},
-			read: function(value, i, reads, options, state){
+			read: function(value, i, reads, options){
 				if(options.readCompute === false && i === reads.length ) {
 					return value;
 				}
@@ -193,7 +193,7 @@ observeReader = {
 
 				return canReflect.isObservableLike(value) && canReflect.isMapLike(value);
 			},
-			read: function(value, prop, index, options, state){
+			read: function(value, prop){
 				var res = canReflect.getKeyValue(value, prop.key);
 				if(res !== undefined) {
 					return res;
