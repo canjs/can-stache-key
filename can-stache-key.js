@@ -187,7 +187,7 @@ observeReader = {
 			test: function(value){
 				// the first time we try reading from a promise, set it up for
 				//  special reflections.
-				if(isPromiseLike(value) || typeof value === "object" && typeof value.then === "function") {
+				if(isPromiseLike(value) || typeof value === "object" && value && typeof value.then === "function") {
 					canReflectPromise(value);
 				}
 

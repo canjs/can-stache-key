@@ -250,3 +250,8 @@ QUnit.test("can read primitive numbers (#88)", function(){
 	QUnit.equal(typeof toFixed, "function", "got to fixed");
 
 });
+
+test("it returns null when promise getter is null #2", function(){
+	var nullPromise = observeReader.read(null, observeReader.reads('value'));
+	QUnit.equal(typeof nullPromise,"object");
+});
