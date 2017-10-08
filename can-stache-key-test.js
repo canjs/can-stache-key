@@ -1,24 +1,17 @@
 var observeReader = require("can-stache-key");
 var QUnit = require('steal-qunit');
 var Observation = require('can-observation');
-var canEvent = require('can-event');
+var eventQueue = require('can-event-queue');
 var dev = require('can-util/js/dev/dev');
 
-var assign = require("can-util/js/assign/assign");
-var eventAsync = require("can-event/async/async");
 var SimpleMap = require("can-simple-map");
 var canReflect = require("can-reflect");
 
-QUnit.module('can-observation/reader',{
-	setup: function(){
-		eventAsync.sync();
-	},
-	teardown: function(){
-		eventAsync.async();
-	}
+QUnit.module('can-stache-key',{
+
 });
 
-test("can.Compute.read can read a promise (#179)", function(){
+test("can read a promise (#179)", function(){
 	var data = {
 		promise: new Promise(function(resolve){
 			setTimeout(function(){
@@ -29,16 +22,14 @@ test("can.Compute.read can read a promise (#179)", function(){
 	var calls = 0;
 	var c = new Observation(function(){
 		return observeReader.read(data,observeReader.reads("promise.value")).value;
-	}, null, {
-		updater: function(newVal, oldVal){
-			calls++;
-			equal(calls, 1, "only one call");
-			equal(newVal, "Something", "new value");
-			equal(oldVal, undefined, "oldVal");
-			start();
-		}
 	});
-	c.start();
+	canReflect.onValue(c, function(newVal, oldVal){
+		calls++;
+		equal(calls, 1, "only one call");
+		equal(newVal, "Something", "new value");
+		equal(oldVal, undefined, "oldVal");
+		start();
+	})
 
 	stop();
 
@@ -57,16 +48,14 @@ test("can.Compute.read can read a promise-like (#82)", function(){
 	var calls = 0;
 	var c = new Observation(function(){
 		return observeReader.read(data,observeReader.reads("promiseLike.value")).value;
-	}, null, {
-		updater: function(newVal, oldVal){
-			calls++;
-			equal(calls, 1, "only one call");
-			equal(newVal, "Something", "new value");
-			equal(oldVal, undefined, "oldVal");
-			start();
-		}
 	});
-	c.start();
+	canReflect.onValue(c, function(newVal, oldVal){
+		calls++;
+		equal(calls, 1, "only one call");
+		equal(newVal, "Something", "new value");
+		equal(oldVal, undefined, "oldVal");
+		start();
+	});
 
 	stop();
 
@@ -88,7 +77,7 @@ test('can.compute.reads', function(){
 });
 
 test('able to read things like can-define', 3, function(){
-	var obj = assign({}, canEvent);
+	var obj = eventQueue({});
 	var prop = "PROP";
 	Object.defineProperty(obj, "prop",{
 		get: function(){
@@ -113,14 +102,8 @@ test('able to read things like can-define', 3, function(){
 			}
 		}).value;
 		equal(value, "PROP");
-	}, null, {
-		updater: function(){
-
-		}
 	});
-	c.start();
-
-
+	canReflect.onValue(c, function(){});
 });
 
 test("foundObservable called with observable object (#7)", function(){
@@ -138,9 +121,8 @@ test("foundObservable called with observable object (#7)", function(){
 				QUnit.equal(obs, map);
 			}
 		});
-	}, null,{});
-	c.start();
-
+	});
+	canReflect.onValue(c, function(){});
 });
 
 test("can read from strings", function(){
@@ -159,10 +141,10 @@ test("read / write to DefineMap", function(){
 			}
 		});
 		return data.value;
-	}, null,function(newVal){
+	});
+	canReflect.onValue(c, function(newVal){
 		QUnit.equal(newVal, 1, "got updated");
 	});
-	c.start();
 	observeReader.write(map,"value",1);
 });
 
