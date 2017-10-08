@@ -29,7 +29,7 @@ test("can read a promise (#179)", function(){
 		equal(newVal, "Something", "new value");
 		equal(oldVal, undefined, "oldVal");
 		start();
-	})
+	});
 
 	stop();
 
