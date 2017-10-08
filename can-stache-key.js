@@ -10,6 +10,7 @@ var getValueSymbol = canSymbol.for("can.getValue");
 var setValueSymbol = canSymbol.for("can.setValue");
 
 var isValueLikeSymbol = canSymbol.for("can.isValueLike");
+var peek = Observation.ignore(canReflect.getKeyValue.bind(canReflect));
 var observeReader;
 var isAt = function(index, reads) {
 	var prevRead = reads[index-1];
@@ -285,11 +286,12 @@ observeReader = {
 		} else {
 			last = keys[0];
 		}
+		var keyValue = peek(parent, last.key);
 		// here's where we need to figure out the best way to write
 
 		// if property being set points at a compute, set the compute
-		if( observeReader.valueReadersMap.isValueLike.test(parent[last.key], keys.length - 1, keys, options) ) {
-			observeReader.valueReadersMap.isValueLike.write(parent[last.key], value, options);
+		if( observeReader.valueReadersMap.isValueLike.test(keyValue, keys.length - 1, keys, options) ) {
+			observeReader.valueReadersMap.isValueLike.write(keyValue, value, options);
 		} else {
 			if(observeReader.valueReadersMap.isValueLike.test(parent, keys.length - 1, keys, options) ) {
 				parent = parent[getValueSymbol]();
