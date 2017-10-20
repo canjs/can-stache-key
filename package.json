@@ -1,6 +1,6 @@
 {
   "name": "can-stache-key",
-  "version": "1.0.0-pre.4",
+  "version": "1.0.0-pre.5",
   "description": "Read and write keys on a value",
   "homepage": "https://canjs.com",
   "repository": {
