@@ -3,6 +3,7 @@ var QUnit = require('steal-qunit');
 var Observation = require('can-observation');
 var eventQueue = require('can-event-queue');
 var dev = require('can-util/js/dev/dev');
+var SimpleObservable = require("can-simple-observable");
 
 var SimpleMap = require("can-simple-map");
 var canReflect = require("can-reflect");
@@ -236,4 +237,16 @@ QUnit.test("can read primitive numbers (#88)", function(){
 test("it returns null when promise getter is null #2", function(){
 	var nullPromise = observeReader.read(null, observeReader.reads('value'));
 	QUnit.equal(typeof nullPromise,"object");
+});
+
+QUnit.test("set onto observable objects and values", function(){
+	var map = new SimpleMap();
+	observeReader.write({map: map},"map", {a: "b"});
+
+	QUnit.equal(map.get("a"), "b", "merged");
+
+
+	var simple = new SimpleObservable();
+	observeReader.write({simple: simple},"simple", 1);
+	QUnit.equal(simple.get(), 1);
 });

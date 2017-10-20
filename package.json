@@ -55,6 +55,7 @@
   "devDependencies": {
     "can-event-queue": "^0.1.1",
     "can-simple-map": "^4.0.0-pre.0",
+    "can-simple-observable": "^2.0.0-pre.11",
     "detect-cyclic-packages": "^1.1.0",
     "jshint": "^2.9.1",
     "steal": "^1.3.1",
