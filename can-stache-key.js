@@ -238,7 +238,7 @@ observeReader = {
 				// if newVal is observable object, lets try to update
 				if(canReflect.isMapLike(propValue) && newVal && typeof newVal === "object") {
 					dev.warn("can-stache-key: Merging data into \"" + prop + "\" because its parent is non-observable");
-					canReflect.update(propValue, newVal)
+					canReflect.update(propValue, newVal);
 				} else if(canReflect.isValueLike(propValue)){
 					canReflect.setValue(propValue, newVal);
 				} else {
