@@ -194,29 +194,30 @@ test("write to a map in a compute", function(){
 
 	QUnit.equal(map.attr("complete"), false, "value set");
 });
+if(System.env.indexOf("production") < 0) {
+	test("promise readers throw errors (#70)", function() {
+		expect(1);
+		var oldError = dev.error;
+		dev.error = function() {
+			dev.error = oldError;
+			ok(true);
+			start();
+		};
 
-test("promise readers throw errors (#70)", function() {
-	expect(1);
-	var oldError = dev.error;
-	dev.error = function() {
-		dev.error = oldError;
-		ok(true);
-		start();
-	};
+		var promise = new Promise(function(resolve, reject) {
+			setTimeout(function() {
+				reject("Something");
+			}, 0);
+		});
 
-	var promise = new Promise(function(resolve, reject) {
-		setTimeout(function() {
-			reject("Something");
-		}, 0);
+		var c = new Observation(function() {
+			return observeReader.read(promise, observeReader.reads("value"), {}).value;
+		}, null, { updater: function() {} });
+
+		c.start();
+		stop();
 	});
-
-	var c = new Observation(function() {
-		return observeReader.read(promise, observeReader.reads("value"), {}).value;
-	}, null, { updater: function() {} });
-
-	c.start();
-	stop();
-});
+}
 
 QUnit.test("reads can be passed a number (can-stache#207)", function(){
 	var reads = observeReader.reads(0);
