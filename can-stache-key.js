@@ -12,6 +12,18 @@ var setValueSymbol = canSymbol.for("can.setValue");
 var isValueLikeSymbol = canSymbol.for("can.isValueLike");
 var peek = Observation.ignore(canReflect.getKeyValue.bind(canReflect));
 var observeReader;
+
+var bindName = Function.prototype.bind;
+//!steal-remove-start
+bindName = function(source){
+	var fn = Function.prototype.bind.call(this, source);
+	Object.defineProperty(fn, "name", {
+		value: canReflect.getName(source) + "."+canReflect.getName(this),
+	});
+	return fn;
+}
+//!steal-remove-end
+
 var isAt = function(index, reads) {
 	var prevRead = reads[index-1];
 	return prevRead && prevRead.at;
@@ -147,13 +159,13 @@ observeReader = {
 			},
 			read: function(value, i, reads, options, state, prev){
 				if( isAt(i, reads) ) {
-					return i === reads.length ? value.bind(prev) : value;
+					return i === reads.length ? bindName.call(value, prev) : value;
 				}
 				else if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
 					return value.apply(prev, options.args || []);
 				}
 				else if ( options.isArgument && i === reads.length ) {
-					return options.proxyMethods !== false ? value.bind(prev) : value;
+					return options.proxyMethods !== false ? bindName.call(value, prev) : value;
 				}
 				return value.apply(prev, options.args || []);
 			}
