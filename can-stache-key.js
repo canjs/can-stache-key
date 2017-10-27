@@ -18,10 +18,10 @@ var bindName = Function.prototype.bind;
 bindName = function(source){
 	var fn = Function.prototype.bind.call(this, source);
 	Object.defineProperty(fn, "name", {
-		value: canReflect.getName(source) + "."+canReflect.getName(this),
+		value: canReflect.getName(source) + "."+canReflect.getName(this)
 	});
 	return fn;
-}
+};
 //!steal-remove-end
 
 var isAt = function(index, reads) {
