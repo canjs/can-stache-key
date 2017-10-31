@@ -1,4 +1,5 @@
 @page can-stache-key
+@hide
 
 # can-stache-key
 
