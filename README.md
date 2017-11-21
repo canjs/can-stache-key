@@ -1,5 +1,7 @@
 # can-stache-key
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/canjs/can-stache-key.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/canjs/can-stache-key.png?branch=master)](https://travis-ci.org/canjs/can-stache-key)
 
 Read and write keys on a value
