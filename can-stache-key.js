@@ -1,5 +1,5 @@
 var Observation = require('can-observation');
-var dev = require('can-util/js/dev/dev');
+var dev = require('can-log/dev/dev');
 var each = require('can-util/js/each/each');
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
@@ -148,12 +148,24 @@ observeReader = {
 				if( isAt(i, reads) ) {
 					return i === reads.length ? value.bind(prev) : value;
 				}
-				else if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
+
+				//!steal-remove-start
+				dev.warn(
+					(options.filename ? options.filename + ':' : '') +
+					(options.lineNumber ? options.lineNumber + ': ' : '') +
+					'"' + reads[0].key + '" is being called as a function.\n' +
+					'\tThis will not happen automatically in an upcoming release.\n' +
+					'\tYou should call it explicitly using "' + reads[0].key + '()".\n\n'
+				);
+				//!steal-remove-end
+
+				if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
 					return value.apply(prev, options.args || []);
 				}
 				else if ( options.isArgument && i === reads.length ) {
 					return options.proxyMethods !== false ? value.bind(prev) : value;
 				}
+
 				return value.apply(prev, options.args || []);
 			}
 		},
@@ -222,7 +234,6 @@ observeReader = {
 							options.foundAt = true;
 							//!steal-remove-start
 							dev.warn("Use %"+prop.key+" in place of @"+prop.key+".");
-
 							//!steal-remove-end
 
 							return value["@"+prop.key];

@@ -2,6 +2,7 @@ var observeReader = require("can-stache-key");
 var QUnit = require('steal-qunit');
 var Observation = require('can-observation');
 var canEvent = require('can-event');
+var testHelpers = require('can-test-helpers');
 
 var assign = require("can-util/js/assign/assign");
 var eventAsync = require("can-event/async/async");
@@ -230,4 +231,50 @@ QUnit.test("can read primitive numbers (#88)", function(){
 test("it returns null when promise getter is null #2", function(){
 	var nullPromise = observeReader.read(null, observeReader.reads('value'));
 	QUnit.equal(typeof nullPromise,"object");
+});
+
+testHelpers.dev.devOnlyTest("a warning is displayed when functions are called by read()", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(true, "method called");
+	};
+	var data = { func: func };
+	var reads = observeReader.reads("func");
+
+	observeReader.read(data, reads, {
+		warnOnFunctionCall: "A Warning"
+	});
+
+	QUnit.equal(teardown(), 1, "warning displayed");
+});
+
+testHelpers.dev.devOnlyTest("a warning is displayed when methods on observables are called by read()", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(true, "method called");
+	};
+	var data = new SimpleMap({ func: func });
+	var reads = observeReader.reads("func");
+
+	observeReader.read(data, reads, {
+		callMethodsOnObservables: true
+	});
+
+	QUnit.equal(teardown(), 1, "warning displayed");
+});
+
+testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read but not called", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(false, "method called");
+	};
+	var data = new SimpleMap({ func: func });
+	var reads = observeReader.reads("@func");
+
+	observeReader.read(data, reads, {
+		callMethodsOnObservables: true,
+		warnOnFunctionCall: "A Warning"
+	});
+
+	QUnit.equal(teardown(), 0, "warning not displayed");
 });
