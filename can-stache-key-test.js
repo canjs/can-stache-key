@@ -2,7 +2,7 @@ var observeReader = require("can-stache-key");
 var QUnit = require('steal-qunit');
 var Observation = require('can-observation');
 var canEvent = require('can-event');
-var dev = require('can-util/js/dev/dev');
+var testHelpers = require('can-test-helpers');
 
 var assign = require("can-util/js/assign/assign");
 var eventAsync = require("can-event/async/async");
@@ -212,29 +212,6 @@ test("write to a map in a compute", function(){
 	QUnit.equal(map.attr("complete"), false, "value set");
 });
 
-test("promise readers throw errors (#70)", function() {
-	expect(1);
-	var oldError = dev.error;
-	dev.error = function() {
-		dev.error = oldError;
-		ok(true);
-		start();
-	};
-
-	var promise = new Promise(function(resolve, reject) {
-		setTimeout(function() {
-			reject("Something");
-		}, 0);
-	});
-
-	var c = new Observation(function() {
-		return observeReader.read(promise, observeReader.reads("value"), {}).value;
-	}, null, { updater: function() {} });
-
-	c.start();
-	stop();
-});
-
 QUnit.test("reads can be passed a number (can-stache#207)", function(){
 	var reads = observeReader.reads(0);
 	QUnit.deepEqual(reads, [{key: "0", at: false}], "number converted to string");
@@ -254,4 +231,50 @@ QUnit.test("can read primitive numbers (#88)", function(){
 test("it returns null when promise getter is null #2", function(){
 	var nullPromise = observeReader.read(null, observeReader.reads('value'));
 	QUnit.equal(typeof nullPromise,"object");
+});
+
+testHelpers.dev.devOnlyTest("a warning is displayed when functions are called by read()", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(true, "method called");
+	};
+	var data = { func: func };
+	var reads = observeReader.reads("func");
+
+	observeReader.read(data, reads, {
+		warnOnFunctionCall: "A Warning"
+	});
+
+	QUnit.equal(teardown(), 1, "warning displayed");
+});
+
+testHelpers.dev.devOnlyTest("a warning is displayed when methods on observables are called by read()", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(true, "method called");
+	};
+	var data = new SimpleMap({ func: func });
+	var reads = observeReader.reads("func");
+
+	observeReader.read(data, reads, {
+		callMethodsOnObservables: true
+	});
+
+	QUnit.equal(teardown(), 1, "warning displayed");
+});
+
+testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read but not called", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(false, "method called");
+	};
+	var data = new SimpleMap({ func: func });
+	var reads = observeReader.reads("@func");
+
+	observeReader.read(data, reads, {
+		callMethodsOnObservables: true,
+		warnOnFunctionCall: "A Warning"
+	});
+
+	QUnit.equal(teardown(), 0, "warning not displayed");
 });
