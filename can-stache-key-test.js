@@ -1,7 +1,7 @@
 var observeReader = require("can-stache-key");
 var QUnit = require('steal-qunit');
 var Observation = require('can-observation');
-var eventQueue = require('can-event-queue');
+var eventQueue = require('can-event-queue/map/legacy/legacy');
 var dev = require('can-util/js/dev/dev');
 var SimpleObservable = require("can-simple-observable");
 
