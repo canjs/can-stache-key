@@ -108,19 +108,20 @@ test('able to read things like can-define', 3, function(){
 });
 
 test("foundObservable called with observable object (#7)", function(){
-	var map = {
+	var map = new SimpleMap({
 		isSaving: function(){
 			Observation.add(this, "_saving");
 		},
 		addEventListener: function(){}
-	};
+	});
 
 	// must use an observation to make sure things are listening.
 	var c = new Observation(function(){
 		observeReader.read(map,observeReader.reads("isSaving"),{
 			foundObservable: function(obs){
 				QUnit.equal(obs, map);
-			}
+			},
+			callMethodsOnObservables: true
 		});
 	});
 	canReflect.onValue(c, function(){});
@@ -228,23 +229,33 @@ QUnit.test("set onto observable objects and values", function(){
 	QUnit.equal(simple.get(), 1);
 });
 
-testHelpers.dev.devOnlyTest("a warning is displayed when functions are called by read()", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+testHelpers.dev.devOnlyTest("functions are not called by read()", function() {
 	var func = function() {
-		QUnit.ok(true, "method called");
+		QUnit.ok(false, "method called");
 	};
 	var data = { func: func };
 	var reads = observeReader.reads("func");
 
-	observeReader.read(data, reads, {
-		warnOnFunctionCall: "A Warning"
-	});
+	observeReader.read(data, reads);
+
+	QUnit.ok(true);
+});
+
+testHelpers.dev.devOnlyTest("a warning is displayed when using @", function() {
+	var teardown = testHelpers.dev.willWarn("functions are no longer called by default so @ is unnecessary in '@func'.");
+	var func = function() {
+		QUnit.ok(false, "method called");
+	};
+	var data = { func: func };
+	var reads = observeReader.reads("@func");
+
+	observeReader.read(data, reads);
 
 	QUnit.equal(teardown(), 1, "warning displayed");
 });
 
-testHelpers.dev.devOnlyTest("a warning is displayed when methods on observables are called by read()", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: true`", function() {
+	var teardown = testHelpers.dev.willWarn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
 	var func = function() {
 		QUnit.ok(true, "method called");
 	};
@@ -255,21 +266,5 @@ testHelpers.dev.devOnlyTest("a warning is displayed when methods on observables 
 		callMethodsOnObservables: true
 	});
 
-	QUnit.equal(teardown(), 1, "warning displayed");
-});
-
-testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read but not called", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
-	var func = function() {
-		QUnit.ok(false, "method called");
-	};
-	var data = new SimpleMap({ func: func });
-	var reads = observeReader.reads("@func");
-
-	observeReader.read(data, reads, {
-		callMethodsOnObservables: true,
-		warnOnFunctionCall: "A Warning"
-	});
-
-	QUnit.equal(teardown(), 0, "warning not displayed");
+	QUnit.ok(teardown(), 1, "warning displayed");
 });

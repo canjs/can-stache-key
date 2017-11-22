@@ -62,8 +62,6 @@ observeReader = {
 	// there are things that you need to evaluate when you get them back as a property read
 	// for example a compute or a function you might need to call to get the next value to
 	// actually check
-	// - isArgument - should be renamed to something like "onLastPropertyReadReturnFunctionInsteadOfCallingIt".
-	//   This is used to make a compute out of that function if necessary.
 	// - readCompute - can be set to `false` to prevent reading an ending compute.  This is used by component to get a
 	//   compute as a delegate.  In 3.0, this should be removed and force people to write "{@prop} change"
 	// - callMethodsOnObservables - this is an overwrite ... so normal methods won't be called, but observable ones will.
@@ -159,27 +157,21 @@ observeReader = {
 			},
 			read: function(value, i, reads, options, state, prev){
 				if( isAt(i, reads) ) {
-					return i === reads.length ? bindName.call(value, prev) : value;
+					dev.warn(
+						(options.filename ? options.filename + ':' : '') +
+						(options.lineNumber ? options.lineNumber + ': ' : '') +
+						"functions are no longer called by default so @ is unnecessary in '" +
+						"@" + reads[0].key + "'."
+					);
 				}
-
-				//!steal-remove-start
-				dev.warn(
-					(options.filename ? options.filename + ':' : '') +
-					(options.lineNumber ? options.lineNumber + ': ' : '') +
-					'"' + reads[0].key + '" is being called as a function.\n' +
-					'\tThis will not happen automatically in an upcoming release.\n' +
-					'\tYou should call it explicitly using "' + reads[0].key + '()".\n\n'
-				);
-				//!steal-remove-end
 
 				if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
+					dev.warn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
+
 					return value.apply(prev, options.args || []);
 				}
-				else if ( options.isArgument && i === reads.length ) {
-					return options.proxyMethods !== false ? bindName.call(value, prev) : value;
-				}
 
-				return value.apply(prev, options.args || []);
+				return options.proxyMethods !== false ? bindName.call(value, prev) : value;
 			}
 		},
 		{
