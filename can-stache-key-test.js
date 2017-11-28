@@ -241,19 +241,6 @@ testHelpers.dev.devOnlyTest("functions are not called by read()", function() {
 	QUnit.ok(true);
 });
 
-testHelpers.dev.devOnlyTest("a warning is displayed when using @", function() {
-	var teardown = testHelpers.dev.willWarn("functions are no longer called by default so @ is unnecessary in '@func'.");
-	var func = function() {
-		QUnit.ok(false, "method called");
-	};
-	var data = { func: func };
-	var reads = observeReader.reads("@func");
-
-	observeReader.read(data, reads);
-
-	QUnit.equal(teardown(), 1, "warning displayed");
-});
-
 testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: true`", function() {
 	var teardown = testHelpers.dev.willWarn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
 	var func = function() {

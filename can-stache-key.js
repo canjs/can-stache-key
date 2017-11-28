@@ -156,15 +156,6 @@ observeReader = {
 				return value && canReflect.isFunctionLike(value) && !canReflect.isConstructorLike(value);
 			},
 			read: function(value, i, reads, options, state, prev){
-				if( isAt(i, reads) ) {
-					dev.warn(
-						(options.filename ? options.filename + ':' : '') +
-						(options.lineNumber ? options.lineNumber + ': ' : '') +
-						"functions are no longer called by default so @ is unnecessary in '" +
-						"@" + reads[0].key + "'."
-					);
-				}
-
 				if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
 					dev.warn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
 
