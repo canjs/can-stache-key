@@ -1,4 +1,4 @@
-var Observation = require('can-observation');
+var ObservationRecorder = require('can-observation-recorder');
 var dev = require('can-log/dev/dev');
 var each = require('can-util/js/each/each');
 var canSymbol = require("can-symbol");
@@ -10,7 +10,7 @@ var getValueSymbol = canSymbol.for("can.getValue");
 var setValueSymbol = canSymbol.for("can.setValue");
 
 var isValueLikeSymbol = canSymbol.for("can.isValueLike");
-var peek = Observation.ignore(canReflect.getKeyValue.bind(canReflect));
+var peek = ObservationRecorder.ignore(canReflect.getKeyValue.bind(canReflect));
 var observeReader;
 
 var bindName = Function.prototype.bind;
@@ -50,8 +50,8 @@ var specialRead = {index: true, key: true, event: true, element: true, viewModel
 
 var checkForObservableAndNotify = function(options, state, getObserves, value, index){
 	if(options.foundObservable && !state.foundObservable) {
-		if(Observation.trapsCount()) {
-			Observation.addAll( getObserves() );
+		if(ObservationRecorder.trapsCount()) {
+			ObservationRecorder.addMany( getObserves() );
 			options.foundObservable(value, index);
 			state.foundObservable = true;
 		}
@@ -79,7 +79,7 @@ observeReader = {
 		};
 		var getObserves;
 		if(options.foundObservable) {
-			getObserves = Observation.trap();
+			getObserves = ObservationRecorder.trap();
 		}
 
 		// `cur` is the current value.

@@ -4,6 +4,7 @@ var Observation = require('can-observation');
 var eventQueue = require('can-event-queue/map/legacy/legacy');
 var SimpleObservable = require("can-simple-observable");
 var testHelpers = require('can-test-helpers');
+var ObservationRecorder = require("can-observation-recorder");
 
 var SimpleMap = require("can-simple-map");
 var canReflect = require("can-reflect");
@@ -82,7 +83,7 @@ test('able to read things like can-define', 3, function(){
 	var prop = "PROP";
 	Object.defineProperty(obj, "prop",{
 		get: function(){
-			Observation.add(obj,"prop");
+			ObservationRecorder.add(obj,"prop");
 			return prop;
 		},
 		set: function(val){
@@ -110,7 +111,7 @@ test('able to read things like can-define', 3, function(){
 test("foundObservable called with observable object (#7)", function(){
 	var map = new SimpleMap({
 		isSaving: function(){
-			Observation.add(this, "_saving");
+			ObservationRecorder.add(this, "_saving");
 		},
 		addEventListener: function(){}
 	});

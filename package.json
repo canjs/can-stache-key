@@ -46,13 +46,14 @@
   "dependencies": {
     "can-log": "^0.1.2",
     "can-namespace": "1.0.0",
-    "can-observation": "^4.0.0-pre.2",
+    "can-observation-recorder": "<2.0.0",
     "can-reflect": "^1.1.0",
     "can-reflect-promise": "^2.0.0-pre.2",
     "can-symbol": "^1.0.0",
     "can-util": "^3.9.0"
   },
   "devDependencies": {
+    "can-observation": "^4.0.0-pre.2",
     "can-event-queue": "<2.0.0",
     "can-simple-map": "^4.0.0-pre.0",
     "can-simple-observable": "^2.0.0-pre.11",
