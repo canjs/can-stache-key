@@ -272,8 +272,23 @@ testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read 
 	var reads = observeReader.reads("@func");
 
 	observeReader.read(data, reads, {
-		callMethodsOnObservables: true,
-		warnOnFunctionCall: "A Warning"
+		callMethodsOnObservables: true
+	});
+
+	QUnit.equal(teardown(), 0, "warning not displayed");
+});
+
+testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read but not called due to proxyMethods=false (#15)", function() {
+	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+	var func = function() {
+		QUnit.ok(false, "method not called");
+	};
+	var data = new SimpleMap({ func: func });
+	var reads = observeReader.reads("func");
+
+	observeReader.read(data, reads, {
+		isArgument: true,
+		proxyMethods: false
 	});
 
 	QUnit.equal(teardown(), 0, "warning not displayed");

@@ -150,21 +150,40 @@ observeReader = {
 				}
 
 				//!steal-remove-start
-				dev.warn(
-					(options.filename ? options.filename + ':' : '') +
-					(options.lineNumber ? options.lineNumber + ': ' : '') +
-					'"' + reads[0].key + '" is being called as a function.\n' +
-					'\tThis will not happen automatically in an upcoming release.\n' +
-					'\tYou should call it explicitly using "' + reads[0].key + '()".\n\n'
-				);
+				var showWarning = function() {
+					dev.warn(
+						(options.filename ? options.filename + ':' : '') +
+						(options.lineNumber ? options.lineNumber + ': ' : '') +
+						'"' + reads[0].key + '" is being called as a function.\n' +
+						'\tThis will not happen automatically in an upcoming release.\n' +
+						'\tYou should call it explicitly using "' + reads[0].key + '()".\n\n'
+					);
+				};
 				//!steal-remove-end
 
+
 				if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
+					//!steal-remove-start
+					showWarning();
+					//!steal-remove-end
+
 					return value.apply(prev, options.args || []);
 				}
 				else if ( options.isArgument && i === reads.length ) {
-					return options.proxyMethods !== false ? value.bind(prev) : value;
+					if (options.proxyMethods === false) {
+						return value;
+					}
+
+					//!steal-remove-start
+					showWarning();
+					//!steal-remove-end
+
+					return value.bind(prev);
 				}
+
+				//!steal-remove-start
+				showWarning();
+				//!steal-remove-end
 
 				return value.apply(prev, options.args || []);
 			}
