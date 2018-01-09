@@ -130,9 +130,12 @@ test("foundObservable called with observable object (#7)", function(){
 
 test("can read from strings", function(){
 	var context = " hi there ";
-
 	var result =  observeReader.read(context,observeReader.reads("trim"),{});
-	QUnit.ok(result, context.trim);
+	QUnit.equal(
+		result.value(context),
+		context.trim(context),
+		'trim method works'
+	);
 });
 
 test("read / write to DefineMap", function(){
@@ -254,5 +257,5 @@ testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: t
 		callMethodsOnObservables: true
 	});
 
-	QUnit.ok(teardown(), 1, "warning displayed");
+	QUnit.equal(teardown(), 1, "warning displayed");
 });
