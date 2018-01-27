@@ -259,3 +259,4 @@ testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: t
 
 	QUnit.equal(teardown(), 1, "warning displayed");
 });
+
