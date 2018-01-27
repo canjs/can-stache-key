@@ -72,7 +72,7 @@
     "can-util": "^3.9.0"
   },
   "devDependencies": {
-    "can-simple-map": "^3.3.0",
+    "can-simple-map": "^4.0.0",
     "can-test-helpers": "^1.1.1",
     "detect-cyclic-packages": "^1.1.0",
     "jshint": "^2.9.1",
