@@ -1,24 +1,19 @@
 var observeReader = require("can-stache-key");
 var QUnit = require('steal-qunit');
 var Observation = require('can-observation');
-var canEvent = require('can-event');
+var eventQueue = require('can-event-queue/map/map');
+var SimpleObservable = require("can-simple-observable");
 var testHelpers = require('can-test-helpers');
+var ObservationRecorder = require("can-observation-recorder");
 
-var assign = require("can-util/js/assign/assign");
-var eventAsync = require("can-event/async/async");
 var SimpleMap = require("can-simple-map");
 var canReflect = require("can-reflect");
 
-QUnit.module('can-observation/reader',{
-	setup: function(){
-		eventAsync.sync();
-	},
-	teardown: function(){
-		eventAsync.async();
-	}
+QUnit.module('can-stache-key',{
+
 });
 
-test("can.Compute.read can read a promise (#179)", function(){
+test("can read a promise (#179)", function(){
 	var data = {
 		promise: new Promise(function(resolve){
 			setTimeout(function(){
@@ -29,16 +24,14 @@ test("can.Compute.read can read a promise (#179)", function(){
 	var calls = 0;
 	var c = new Observation(function(){
 		return observeReader.read(data,observeReader.reads("promise.value")).value;
-	}, null, {
-		updater: function(newVal, oldVal){
-			calls++;
-			equal(calls, 1, "only one call");
-			equal(newVal, "Something", "new value");
-			equal(oldVal, undefined, "oldVal");
-			start();
-		}
 	});
-	c.start();
+	canReflect.onValue(c, function(newVal, oldVal){
+		calls++;
+		equal(calls, 1, "only one call");
+		equal(newVal, "Something", "new value");
+		equal(oldVal, undefined, "oldVal");
+		start();
+	});
 
 	stop();
 
@@ -57,16 +50,14 @@ test("can.Compute.read can read a promise-like (#82)", function(){
 	var calls = 0;
 	var c = new Observation(function(){
 		return observeReader.read(data,observeReader.reads("promiseLike.value")).value;
-	}, null, {
-		updater: function(newVal, oldVal){
-			calls++;
-			equal(calls, 1, "only one call");
-			equal(newVal, "Something", "new value");
-			equal(oldVal, undefined, "oldVal");
-			start();
-		}
 	});
-	c.start();
+	canReflect.onValue(c, function(newVal, oldVal){
+		calls++;
+		equal(calls, 1, "only one call");
+		equal(newVal, "Something", "new value");
+		equal(oldVal, undefined, "oldVal");
+		start();
+	});
 
 	stop();
 
@@ -88,11 +79,11 @@ test('can.compute.reads', function(){
 });
 
 test('able to read things like can-define', 3, function(){
-	var obj = assign({}, canEvent);
+	var obj = eventQueue({});
 	var prop = "PROP";
 	Object.defineProperty(obj, "prop",{
 		get: function(){
-			Observation.add(obj,"prop");
+			ObservationRecorder.add(obj,"prop");
 			return prop;
 		},
 		set: function(val){
@@ -113,41 +104,38 @@ test('able to read things like can-define', 3, function(){
 			}
 		}).value;
 		equal(value, "PROP");
-	}, null, {
-		updater: function(){
-
-		}
 	});
-	c.start();
-
-
+	canReflect.onValue(c, function(){});
 });
 
 test("foundObservable called with observable object (#7)", function(){
-	var map = {
+	var map = new SimpleMap({
 		isSaving: function(){
-			Observation.add(this, "_saving");
+			ObservationRecorder.add(this, "_saving");
 		},
 		addEventListener: function(){}
-	};
+	});
 
 	// must use an observation to make sure things are listening.
 	var c = new Observation(function(){
 		observeReader.read(map,observeReader.reads("isSaving"),{
 			foundObservable: function(obs){
 				QUnit.equal(obs, map);
-			}
+			},
+			callMethodsOnObservables: true
 		});
-	}, null,{});
-	c.start();
-
+	});
+	canReflect.onValue(c, function(){});
 });
 
 test("can read from strings", function(){
 	var context = " hi there ";
-
 	var result =  observeReader.read(context,observeReader.reads("trim"),{});
-	QUnit.ok(result, context.trim);
+	QUnit.equal(
+		result.value(context),
+		context.trim(context),
+		'trim method works'
+	);
 });
 
 test("read / write to DefineMap", function(){
@@ -159,10 +147,10 @@ test("read / write to DefineMap", function(){
 			}
 		});
 		return data.value;
-	}, null,function(newVal){
+	});
+	canReflect.onValue(c, function(newVal){
 		QUnit.equal(newVal, 1, "got updated");
 	});
-	c.start();
 	observeReader.write(map,"value",1);
 });
 
@@ -233,23 +221,32 @@ test("it returns null when promise getter is null #2", function(){
 	QUnit.equal(typeof nullPromise,"object");
 });
 
-testHelpers.dev.devOnlyTest("a warning is displayed when functions are called by read()", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+QUnit.test("set onto observable objects and values", function(){
+	var map = new SimpleMap();
+	observeReader.write({map: map},"map", {a: "b"});
+
+	QUnit.equal(map.get("a"), "b", "merged");
+
+
+	var simple = new SimpleObservable();
+	observeReader.write({simple: simple},"simple", 1);
+	QUnit.equal(simple.get(), 1);
+});
+
+testHelpers.dev.devOnlyTest("functions are not called by read()", function() {
 	var func = function() {
-		QUnit.ok(true, "method called");
+		QUnit.ok(false, "method called");
 	};
 	var data = { func: func };
 	var reads = observeReader.reads("func");
 
-	observeReader.read(data, reads, {
-		warnOnFunctionCall: "A Warning"
-	});
+	observeReader.read(data, reads);
 
-	QUnit.equal(teardown(), 1, "warning displayed");
+	QUnit.ok(true);
 });
 
-testHelpers.dev.devOnlyTest("a warning is displayed when methods on observables are called by read()", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
+testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: true`", function() {
+	var teardown = testHelpers.dev.willWarn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
 	var func = function() {
 		QUnit.ok(true, "method called");
 	};
@@ -263,33 +260,3 @@ testHelpers.dev.devOnlyTest("a warning is displayed when methods on observables 
 	QUnit.equal(teardown(), 1, "warning displayed");
 });
 
-testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read but not called", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
-	var func = function() {
-		QUnit.ok(false, "method called");
-	};
-	var data = new SimpleMap({ func: func });
-	var reads = observeReader.reads("@func");
-
-	observeReader.read(data, reads, {
-		callMethodsOnObservables: true
-	});
-
-	QUnit.equal(teardown(), 0, "warning not displayed");
-});
-
-testHelpers.dev.devOnlyTest("a warning is not displayed when functions are read but not called due to proxyMethods=false (#15)", function() {
-	var teardown = testHelpers.dev.willWarn(/"func" is being called as a function/);
-	var func = function() {
-		QUnit.ok(false, "method not called");
-	};
-	var data = new SimpleMap({ func: func });
-	var reads = observeReader.reads("func");
-
-	observeReader.read(data, reads, {
-		isArgument: true,
-		proxyMethods: false
-	});
-
-	QUnit.equal(teardown(), 0, "warning not displayed");
-});

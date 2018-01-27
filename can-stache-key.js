@@ -1,4 +1,4 @@
-var Observation = require('can-observation');
+var ObservationRecorder = require('can-observation-recorder');
 var dev = require('can-log/dev/dev');
 var each = require('can-util/js/each/each');
 var canSymbol = require("can-symbol");
@@ -10,7 +10,20 @@ var getValueSymbol = canSymbol.for("can.getValue");
 var setValueSymbol = canSymbol.for("can.setValue");
 
 var isValueLikeSymbol = canSymbol.for("can.isValueLike");
+var peek = ObservationRecorder.ignore(canReflect.getKeyValue.bind(canReflect));
 var observeReader;
+
+var bindName = Function.prototype.bind;
+//!steal-remove-start
+bindName = function(source){
+	var fn = Function.prototype.bind.call(this, source);
+	Object.defineProperty(fn, "name", {
+		value: canReflect.getName(source) + "."+canReflect.getName(this)
+	});
+	return fn;
+};
+//!steal-remove-end
+
 var isAt = function(index, reads) {
 	var prevRead = reads[index-1];
 	return prevRead && prevRead.at;
@@ -37,8 +50,8 @@ var specialRead = {index: true, key: true, event: true, element: true, viewModel
 
 var checkForObservableAndNotify = function(options, state, getObserves, value, index){
 	if(options.foundObservable && !state.foundObservable) {
-		if(Observation.trapsCount()) {
-			Observation.addAll( getObserves() );
+		if(ObservationRecorder.trapsCount()) {
+			ObservationRecorder.addMany( getObserves() );
 			options.foundObservable(value, index);
 			state.foundObservable = true;
 		}
@@ -49,8 +62,6 @@ observeReader = {
 	// there are things that you need to evaluate when you get them back as a property read
 	// for example a compute or a function you might need to call to get the next value to
 	// actually check
-	// - isArgument - should be renamed to something like "onLastPropertyReadReturnFunctionInsteadOfCallingIt".
-	//   This is used to make a compute out of that function if necessary.
 	// - readCompute - can be set to `false` to prevent reading an ending compute.  This is used by component to get a
 	//   compute as a delegate.  In 3.0, this should be removed and force people to write "{@prop} change"
 	// - callMethodsOnObservables - this is an overwrite ... so normal methods won't be called, but observable ones will.
@@ -68,7 +79,7 @@ observeReader = {
 		};
 		var getObserves;
 		if(options.foundObservable) {
-			getObserves = Observation.trap();
+			getObserves = ObservationRecorder.trap();
 		}
 
 		// `cur` is the current value.
@@ -145,47 +156,13 @@ observeReader = {
 				return value && canReflect.isFunctionLike(value) && !canReflect.isConstructorLike(value);
 			},
 			read: function(value, i, reads, options, state, prev){
-				if( isAt(i, reads) ) {
-					return i === reads.length ? value.bind(prev) : value;
-				}
-
-				//!steal-remove-start
-				var showWarning = function() {
-					dev.warn(
-						(options.filename ? options.filename + ':' : '') +
-						(options.lineNumber ? options.lineNumber + ': ' : '') +
-						'"' + reads[0].key + '" is being called as a function.\n' +
-						'\tThis will not happen automatically in an upcoming release.\n' +
-						'\tYou should call it explicitly using "' + reads[0].key + '()".\n\n'
-					);
-				};
-				//!steal-remove-end
-
-
 				if(options.callMethodsOnObservables && canReflect.isObservableLike(prev) && canReflect.isMapLike(prev)) {
-					//!steal-remove-start
-					showWarning();
-					//!steal-remove-end
+					dev.warn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
 
 					return value.apply(prev, options.args || []);
 				}
-				else if ( options.isArgument && i === reads.length ) {
-					if (options.proxyMethods === false) {
-						return value;
-					}
 
-					//!steal-remove-start
-					showWarning();
-					//!steal-remove-end
-
-					return value.bind(prev);
-				}
-
-				//!steal-remove-start
-				showWarning();
-				//!steal-remove-end
-
-				return value.apply(prev, options.args || []);
+				return options.proxyMethods !== false ? bindName.call(value, prev) : value;
 			}
 		},
 		{
@@ -263,7 +240,17 @@ observeReader = {
 				}
 			},
 			write: function(base, prop, newVal){
-				base[prop] = newVal;
+				var propValue = base[prop];
+				// if newVal is observable object, lets try to update
+				if(canReflect.isMapLike(propValue) && newVal && typeof newVal === "object") {
+					dev.warn("can-stache-key: Merging data into \"" + prop + "\" because its parent is non-observable");
+					canReflect.update(propValue, newVal);
+				} else if(canReflect.isValueLike(propValue) && canReflect.isObservableLike(propValue)){
+					canReflect.setValue(propValue, newVal);
+				} else {
+					base[prop] = newVal;
+				}
+
 			}
 		}
 	],
@@ -315,11 +302,12 @@ observeReader = {
 		} else {
 			last = keys[0];
 		}
+		var keyValue = peek(parent, last.key);
 		// here's where we need to figure out the best way to write
 
 		// if property being set points at a compute, set the compute
-		if( observeReader.valueReadersMap.isValueLike.test(parent[last.key], keys.length - 1, keys, options) ) {
-			observeReader.valueReadersMap.isValueLike.write(parent[last.key], value, options);
+		if( observeReader.valueReadersMap.isValueLike.test(keyValue, keys.length - 1, keys, options) ) {
+			observeReader.valueReadersMap.isValueLike.write(keyValue, value, options);
 		} else {
 			if(observeReader.valueReadersMap.isValueLike.test(parent, keys.length - 1, keys, options) ) {
 				parent = parent[getValueSymbol]();
