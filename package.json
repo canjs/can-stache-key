@@ -67,7 +67,7 @@
     "can-namespace": "1.0.0",
     "can-observation": "^3.3.0",
     "can-reflect": "^1.1.0",
-    "can-reflect-promise": "^1.1.0",
+    "can-reflect-promise": "^2.0.0",
     "can-symbol": "^1.0.0",
     "can-util": "^3.9.0"
   },
