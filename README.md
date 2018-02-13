@@ -12,7 +12,7 @@ Read and write keys on a value
 
 With StealJS, you can import this module directly in a template that is autorendered:
 
-```js
+```javascript
 import plugin from 'can-stache-key';
 ```
 
@@ -21,8 +21,8 @@ import plugin from 'can-stache-key';
 Use `require` to load `can-stache-key` and everything else
 needed to create a template that uses `can-stache-key`:
 
-```js
-var plugin = require("can-stache-key");
+```javascript
+import plugin from "can-stache-key";
 ```
 
 ### Standalone use
