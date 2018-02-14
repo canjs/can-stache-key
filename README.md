@@ -13,7 +13,7 @@ Read and write keys on a value
 With StealJS, you can import this module directly in a template that is autorendered:
 
 ```js
-import plugin from 'can-stache-key';
+import plugin from "can-stache-key";
 ```
 
 ### CommonJS use
