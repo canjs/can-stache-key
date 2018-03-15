@@ -294,13 +294,15 @@ observeReader = {
 		var last;
 
 		options = options || {};
-
 		if(keys.length > 1) {
 			last = keys.pop();
 			parent = observeReader.read(parent, keys, options).value;
 			keys.push(last);
 		} else {
 			last = keys[0];
+		}
+		if(!parent) {
+			return;
 		}
 		var keyValue = peek(parent, last.key);
 		// here's where we need to figure out the best way to write

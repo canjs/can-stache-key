@@ -260,3 +260,9 @@ testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: t
 	QUnit.equal(teardown(), 1, "warning displayed");
 });
 
+QUnit.test("writing to a null observable is ignored", function(){
+	observeReader.write({},"foo.bar", "value");
+	observeReader.write(null,"bar", "value");
+	observeReader.write(null,"foo.bar", "value");
+	QUnit.ok(true, "all passed without error");
+});
