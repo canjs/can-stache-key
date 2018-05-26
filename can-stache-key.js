@@ -1,9 +1,7 @@
 var ObservationRecorder = require('can-observation-recorder');
 var dev = require('can-log/dev/dev');
-var each = require('can-util/js/each/each');
 var canSymbol = require("can-symbol");
 var canReflect = require("can-reflect");
-var isPromiseLike = require('can-util/js/is-promise-like/is-promise-like');
 var canReflectPromise = require("can-reflect-promise");
 
 var getValueSymbol = canSymbol.for("can.getValue");
@@ -195,7 +193,7 @@ observeReader = {
 			test: function(value){
 				// the first time we try reading from a promise, set it up for
 				//  special reflections.
-				if(isPromiseLike(value) || typeof value === "object" && value && typeof value.then === "function") {
+				if(canReflect.isPromise(value) || typeof value === "object" && value && typeof value.then === "function") {
 					canReflectPromise(value);
 				}
 
@@ -225,15 +223,14 @@ observeReader = {
 						if(prop.key in value) {
 							return value[prop.key];
 						}
-						// TODO: remove in 3.0.  This is for backwards compat with @key and @index.
-						else if( prop.at && specialRead[prop.key] && ( ("@"+prop.key) in value)) {
+						// TODO: remove in 5.0.
+						//!steal-remove-start
+						if( prop.at && specialRead[prop.key] && ( ("@"+prop.key) in value)) {
 							options.foundAt = true;
-							//!steal-remove-start
 							dev.warn("Use %"+prop.key+" in place of @"+prop.key+".");
-							//!steal-remove-end
-
-							return value["@"+prop.key];
+							return undefined;
 						}
+						//!steal-remove-end
 					} else {
 						return value[prop.key];
 					}
@@ -326,10 +323,10 @@ observeReader = {
 		}
 	}
 };
-each(observeReader.propertyReaders, function(reader){
+observeReader.propertyReaders.forEach(function(reader){
 	observeReader.propertyReadersMap[reader.name] = reader;
 });
-each(observeReader.valueReaders, function(reader){
+observeReader.valueReaders.forEach(function(reader){
 	observeReader.valueReadersMap[reader.name] = reader;
 });
 observeReader.set = observeReader.write;
