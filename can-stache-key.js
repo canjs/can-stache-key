@@ -56,6 +56,14 @@ var checkForObservableAndNotify = function(options, state, getObserves, value, i
 	}
 };
 
+var objHasKeyAtIndex = function(obj, reads, index) {
+	return !!(
+		obj && typeof obj === "object" &&
+		reads && reads.length &&
+		canReflect.hasKey(obj, reads[index].key)
+	);
+};
+
 observeReader = {
 	// there are things that you need to evaluate when you get them back as a property read
 	// for example a compute or a function you might need to call to get the next value to
@@ -88,7 +96,8 @@ observeReader = {
 			// `foundObs` did we find an observable.
 			readLength = reads.length,
 			i = 0,
-			last;
+			last,
+			parentHasKey;
 
 		checkForObservableAndNotify(options, state, getObserves, parent, 0);
 
@@ -110,31 +119,34 @@ observeReader = {
 
 			checkForObservableAndNotify(options, state, getObserves, prev, i-1);
 
-
-
 			type = typeof cur;
 			// early exit if need be
 			if (i < reads.length && (cur === null || cur === undefined )) {
-				if (options.earlyExit) {
+				parentHasKey = objHasKeyAtIndex(prev, reads, i - 1);
+				if (options.earlyExit && !parentHasKey) {
 					options.earlyExit(prev, i - 1, cur);
 				}
 				// return undefined so we know this isn't the right value
 				return {
 					value: undefined,
-					parent: prev
+					parent: prev,
+					parentHasKey: parentHasKey
 				};
 			}
 
 		}
+
+		parentHasKey = objHasKeyAtIndex(prev, reads, reads.length - 1);
 		// if we don't have a value, exit early.
-		if (cur === undefined) {
+		if (cur === undefined && !parentHasKey) {
 			if (options.earlyExit) {
 				options.earlyExit(prev, i - 1);
 			}
 		}
 		return {
 			value: cur,
-			parent: prev
+			parent: prev,
+			parentHasKey: parentHasKey
 		};
 	},
 	get: function(parent, reads, options){
