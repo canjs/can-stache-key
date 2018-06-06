@@ -120,9 +120,9 @@ observeReader = {
 			checkForObservableAndNotify(options, state, getObserves, prev, i-1);
 
 			type = typeof cur;
-			parentHasKey = objHasKeyAtIndex(prev, reads, i - 1);
 			// early exit if need be
 			if (i < reads.length && (cur === null || cur === undefined )) {
+				parentHasKey = objHasKeyAtIndex(prev, reads, i - 1);
 				if (options.earlyExit && !parentHasKey) {
 					options.earlyExit(prev, i - 1, cur);
 				}
