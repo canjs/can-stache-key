@@ -138,7 +138,7 @@ test("can read from strings", function(){
 	);
 });
 
-test("read / write to DefineMap", function(){
+test("read / write to SimpleMap", function(){
 	var map = new SimpleMap();
 	var c = new Observation(function(){
 		var data = observeReader.read(map,observeReader.reads("value"),{
@@ -154,7 +154,7 @@ test("read / write to DefineMap", function(){
 	observeReader.write(map,"value",1);
 });
 
-test("write deep in DefineMap", function(){
+test("write deep in SimpleMap", function(){
 	var map = new SimpleMap();
 	observeReader.write(map,"foo", new SimpleMap());
 	observeReader.write(map,"foo.bar", 1);
@@ -227,7 +227,6 @@ QUnit.test("set onto observable objects and values", function(){
 
 	QUnit.equal(map.get("a"), "b", "merged");
 
-
 	var simple = new SimpleObservable();
 	observeReader.write({simple: simple},"simple", 1);
 	QUnit.equal(simple.get(), 1);
@@ -265,4 +264,76 @@ QUnit.test("writing to a null observable is ignored", function(){
 	observeReader.write(null,"bar", "value");
 	observeReader.write(null,"foo.bar", "value");
 	QUnit.ok(true, "all passed without error");
+});
+
+QUnit.test("read sets parentHasKey even for undefined values", function() {
+	var child = {
+		prop: "foo"
+	};
+	canReflect.assignSymbols(child, {
+		"can.hasKey": function(key) {
+			return key === "prop" || key === "undefinedProp";
+		}
+	});
+
+	var parent = {
+		child: child
+	};
+	canReflect.assignSymbols(parent, {
+		"can.hasKey": function(key) {
+			return key === "child" || key === "undefinedChild";
+		}
+	});
+
+	var map = {
+		parent: parent
+	};
+
+	// map.parent
+	var reads = observeReader.reads("parent");
+	var value = observeReader.read(map, reads);
+
+	QUnit.equal(value.value, parent, "parent.value === map");
+	QUnit.equal(value.parent, map, "parent.parent === map");
+	QUnit.equal(value.parentHasKey, true, "parent.parentHasKey === true");
+
+	// map.parent.child
+	reads = observeReader.reads("parent.child");
+	value = observeReader.read(map, reads);
+
+	QUnit.equal(value.value, child, "parent.child.value === child");
+	QUnit.equal(value.parent, parent, "parent.child.parent === parent");
+	QUnit.equal(value.parentHasKey, true, "parent.child.parentHasKey === true");
+
+	// map.parent.undefinedChild
+	reads = observeReader.reads("parent.undefinedChild");
+	value = observeReader.read(map, reads);
+
+	QUnit.equal(value.value, undefined, "parent.undefinedChild.value === undefined");
+	QUnit.equal(value.parent, parent, "parent.undefinedChild.parent === parent");
+	QUnit.equal(value.parentHasKey, true, "parent.undefinedChild.parentHasKey === true");
+
+	// map.parent.undefinedChild.prop
+	reads = observeReader.reads("parent.undefinedChild.prop");
+	value = observeReader.read(map, reads);
+
+	QUnit.equal(value.value, undefined, "parent.undefinedChild.prop.value === undefined");
+	QUnit.equal(value.parent, parent, "parent.undefinedChild.prop.parent === parent");
+	QUnit.equal(value.parentHasKey, true, "parent.undefinedChild.prop.parentHasKey === true");
+
+	// map.parent.child.prop
+	reads = observeReader.reads("parent.child.prop");
+	value = observeReader.read(map, reads);
+
+	QUnit.equal(value.value, "foo", "parent.child.prop.value === 'foo'");
+	QUnit.equal(value.parent, child, "parent.child.prop.parent === child");
+	QUnit.equal(value.parentHasKey, true, "parent.child.prop.parentHasKey === true");
+
+	// map.parent.child.undefinedProp
+	reads = observeReader.reads("parent.child.undefinedProp");
+	value = observeReader.read(map, reads);
+
+	QUnit.equal(value.value, undefined, "parent.child.undefinedProp.value === undefined");
+	QUnit.equal(value.parent, child, "parent.child.undefinedProp.parent === child");
+	QUnit.equal(value.parentHasKey, true, "parent.child.undefinedProp.parentHasKey === true");
 });
