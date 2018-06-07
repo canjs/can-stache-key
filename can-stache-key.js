@@ -130,7 +130,8 @@ observeReader = {
 				return {
 					value: undefined,
 					parent: prev,
-					parentHasKey: parentHasKey
+					parentHasKey: parentHasKey,
+					foundLastParent: false
 				};
 			}
 
@@ -146,7 +147,8 @@ observeReader = {
 		return {
 			value: cur,
 			parent: prev,
-			parentHasKey: parentHasKey
+			parentHasKey: parentHasKey,
+			foundLastParent: true
 		};
 	},
 	get: function(parent, reads, options){

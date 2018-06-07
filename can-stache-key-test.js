@@ -266,74 +266,40 @@ QUnit.test("writing to a null observable is ignored", function(){
 	QUnit.ok(true, "all passed without error");
 });
 
-QUnit.test("read sets parentHasKey even for undefined values", function() {
-	var child = {
-		prop: "foo"
-	};
-	canReflect.assignSymbols(child, {
-		"can.hasKey": function(key) {
-			return key === "prop" || key === "undefinedProp";
-		}
-	});
-
-	var parent = {
-		child: child
-	};
-	canReflect.assignSymbols(parent, {
-		"can.hasKey": function(key) {
-			return key === "child" || key === "undefinedChild";
-		}
-	});
-
-	var map = {
-		parent: parent
+QUnit.test("parentHasKey and foundLastParent (#31)", function() {
+	var hasKeys = function(obj, keys) {
+		canReflect.assignSymbols(obj, {
+			"can.hasKey": function(key) {
+				return keys.indexOf(key) > -1;
+			}
+		});
 	};
 
-	// map.parent
-	var reads = observeReader.reads("parent");
-	var value = observeReader.read(map, reads);
+	var def = { ghi: undefined };
+	hasKeys(def, [ "ghi" ]);
 
-	QUnit.equal(value.value, parent, "parent.value === map");
-	QUnit.equal(value.parent, map, "parent.parent === map");
-	QUnit.equal(value.parentHasKey, true, "parent.parentHasKey === true");
+	var abc = { def: def };
+	hasKeys(abc, [ "def" ]);
 
-	// map.parent.child
-	reads = observeReader.reads("parent.child");
-	value = observeReader.read(map, reads);
+	var parent = { abc: abc };
+	hasKeys(parent, [ "abc" ]);
 
-	QUnit.equal(value.value, child, "parent.child.value === child");
-	QUnit.equal(value.parent, parent, "parent.child.parent === parent");
-	QUnit.equal(value.parentHasKey, true, "parent.child.parentHasKey === true");
+	var testCases = {
+		"abc.def.ghi": { parent: def, value: undefined, parentHasKey: true, foundLastParent: true },
+		"abc.def.jkl": { parent: def, value: undefined, parentHasKey: false, foundLastParent: true },
+		"abc.ghi.ghi": { parent: abc, value: undefined, parentHasKey: false, foundLastParent: false },
+		"def.ghi.jkl": { parent: parent, value: undefined, parentHasKey: false, foundLastParent: false }
+	};
 
-	// map.parent.undefinedChild
-	reads = observeReader.reads("parent.undefinedChild");
-	value = observeReader.read(map, reads);
+	var reads, actual, expected;
+	for (var key in testCases) {
+		reads = observeReader.reads(key);
+		actual = observeReader.read(parent, reads);
+		expected = testCases[key];
 
-	QUnit.equal(value.value, undefined, "parent.undefinedChild.value === undefined");
-	QUnit.equal(value.parent, parent, "parent.undefinedChild.parent === parent");
-	QUnit.equal(value.parentHasKey, true, "parent.undefinedChild.parentHasKey === true");
-
-	// map.parent.undefinedChild.prop
-	reads = observeReader.reads("parent.undefinedChild.prop");
-	value = observeReader.read(map, reads);
-
-	QUnit.equal(value.value, undefined, "parent.undefinedChild.prop.value === undefined");
-	QUnit.equal(value.parent, parent, "parent.undefinedChild.prop.parent === parent");
-	QUnit.equal(value.parentHasKey, true, "parent.undefinedChild.prop.parentHasKey === true");
-
-	// map.parent.child.prop
-	reads = observeReader.reads("parent.child.prop");
-	value = observeReader.read(map, reads);
-
-	QUnit.equal(value.value, "foo", "parent.child.prop.value === 'foo'");
-	QUnit.equal(value.parent, child, "parent.child.prop.parent === child");
-	QUnit.equal(value.parentHasKey, true, "parent.child.prop.parentHasKey === true");
-
-	// map.parent.child.undefinedProp
-	reads = observeReader.reads("parent.child.undefinedProp");
-	value = observeReader.read(map, reads);
-
-	QUnit.equal(value.value, undefined, "parent.child.undefinedProp.value === undefined");
-	QUnit.equal(value.parent, child, "parent.child.undefinedProp.parent === child");
-	QUnit.equal(value.parentHasKey, true, "parent.child.undefinedProp.parentHasKey === true");
+		QUnit.equal(actual.value, expected.value, key + ".value");
+		QUnit.equal(actual.parent, expected.parent, key + ".parent");
+		QUnit.equal(actual.parentHasKey, expected.parentHasKey, key + ".parentHasKey");
+		QUnit.equal(actual.foundLastParent, expected.foundLastParent, key + ".foundLastParent");
+	}
 });
