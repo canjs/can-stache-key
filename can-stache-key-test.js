@@ -303,3 +303,10 @@ QUnit.test("parentHasKey and foundLastParent (#31)", function() {
 		QUnit.equal(actual.foundLastParent, expected.foundLastParent, key + ".foundLastParent");
 	}
 });
+
+QUnit.test("objHasKeyAtIndex doesn't handle non-object types correctly (#33)", function () {
+	var result = observeReader.read(47, observeReader.reads("toFixed"));
+	QUnit.equal(typeof result.value, 'function');
+	QUnit.equal(result.parent, 47);
+	QUnit.equal(result.parentHasKey, true);
+});

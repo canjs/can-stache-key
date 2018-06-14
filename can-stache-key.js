@@ -58,7 +58,6 @@ var checkForObservableAndNotify = function(options, state, getObserves, value, i
 
 var objHasKeyAtIndex = function(obj, reads, index) {
 	return !!(
-		obj && typeof obj === "object" &&
 		reads && reads.length &&
 		canReflect.hasKey(obj, reads[index].key)
 	);
