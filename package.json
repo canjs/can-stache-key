@@ -47,7 +47,7 @@
     "can-log": "^1.0.0",
     "can-namespace": "1.0.0",
     "can-observation-recorder": "^1.0.0",
-    "can-reflect": "^1.1.0",
+    "can-reflect": "^1.16.4",
     "can-reflect-promise": "^2.0.0",
     "can-symbol": "^1.0.0"
   },
