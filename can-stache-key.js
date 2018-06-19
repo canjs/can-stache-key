@@ -252,15 +252,14 @@ observeReader = {
 			write: function(base, prop, newVal){
 				var propValue = base[prop];
 				// if newVal is observable object, lets try to update
-				if(canReflect.isMapLike(propValue) && newVal && typeof newVal === "object") {
+				if(newVal != null && typeof newVal === "object" && canReflect.isMapLike(propValue) ) {
 					dev.warn("can-stache-key: Merging data into \"" + prop + "\" because its parent is non-observable");
 					canReflect.update(propValue, newVal);
-				} else if(canReflect.isValueLike(propValue) && canReflect.isObservableLike(propValue)){
+				} else if(propValue != null && propValue[setValueSymbol] !== undefined){
 					canReflect.setValue(propValue, newVal);
 				} else {
 					base[prop] = newVal;
 				}
-
 			}
 		}
 	],

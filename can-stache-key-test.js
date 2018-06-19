@@ -310,3 +310,12 @@ QUnit.test("objHasKeyAtIndex doesn't handle non-object types correctly (#33)", f
 	QUnit.equal(result.parent, 47);
 	QUnit.equal(result.parentHasKey, true);
 });
+
+QUnit.test("write to an object", function(){
+	var obj = {};
+	observeReader.write(obj,"value",1);
+	QUnit.deepEqual(obj,{value: 1});
+	obj = {value: null};
+	observeReader.write(obj,"value",1);
+	QUnit.deepEqual(obj,{value: 1});
+});
