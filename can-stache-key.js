@@ -13,13 +13,15 @@ var observeReader;
 
 var bindName = Function.prototype.bind;
 //!steal-remove-start
-bindName = function(source){
-	var fn = Function.prototype.bind.call(this, source);
-	Object.defineProperty(fn, "name", {
-		value: canReflect.getName(source) + "."+canReflect.getName(this)
-	});
-	return fn;
-};
+if (process.env.NODE_ENV !== 'production') {
+	bindName = function(source){
+		var fn = Function.prototype.bind.call(this, source);
+		Object.defineProperty(fn, "name", {
+			value: canReflect.getName(source) + "."+canReflect.getName(this)
+		});
+		return fn;
+	};
+}
 //!steal-remove-end
 
 var isAt = function(index, reads) {
@@ -238,10 +240,12 @@ observeReader = {
 						}
 						// TODO: remove in 5.0.
 						//!steal-remove-start
-						if( prop.at && specialRead[prop.key] && ( ("@"+prop.key) in value)) {
-							options.foundAt = true;
-							dev.warn("Use %"+prop.key+" in place of @"+prop.key+".");
-							return undefined;
+						if (process.env.NODE_ENV !== 'production') {
+							if( prop.at && specialRead[prop.key] && ( ("@"+prop.key) in value)) {
+								options.foundAt = true;
+								dev.warn("Use %"+prop.key+" in place of @"+prop.key+".");
+								return undefined;
+							}
 						}
 						//!steal-remove-end
 					} else {
