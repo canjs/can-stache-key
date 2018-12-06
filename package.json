@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "can-observation": "^4.0.0-pre.2",
-    "can-event-queue": "<2.0.0",
+    "can-event-queue": "1.1.4",
     "can-simple-map": "^4.0.0",
     "can-simple-observable": "^2.0.0-pre.11",
     "can-test-helpers": "^1.1.1",
