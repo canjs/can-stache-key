@@ -5,8 +5,6 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/canjs/can-stache-key/blob/master/LICENSE)
 [![npm version](https://badge.fury.io/js/can-stache-key.svg)](https://www.npmjs.com/package/can-stache-key)
 [![Travis build status](https://travis-ci.org/canjs/can-stache-key.svg?branch=master)](https://travis-ci.org/canjs/can-stache-key)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/canjs/can-stache-key?branch=master&svg=true)](https://ci.appveyor.com/project/matthewp/can-stache-key)
-[![Coverage status](https://coveralls.io/repos/github/canjs/can-stache-key/badge.svg?branch=master)](https://coveralls.io/github/canjs/can-stache-key?branch=master)
 [![Greenkeeper badge](https://badges.greenkeeper.io/canjs/can-stache-key.svg)](https://greenkeeper.io/)
 
 Read and write keys on a value
