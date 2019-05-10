@@ -13,7 +13,7 @@ QUnit.module('can-stache-key',{
 
 });
 
-test("can read a promise (#179)", function(){
+QUnit.test("can read a promise (#179)", function(assert) {
 	var data = {
 		promise: new Promise(function(resolve){
 			setTimeout(function(){
@@ -27,17 +27,17 @@ test("can read a promise (#179)", function(){
 	});
 	canReflect.onValue(c, function(newVal, oldVal){
 		calls++;
-		equal(calls, 1, "only one call");
-		equal(newVal, "Something", "new value");
-		equal(oldVal, undefined, "oldVal");
-		start();
+		assert.equal(calls, 1, "only one call");
+		assert.equal(newVal, "Something", "new value");
+		assert.equal(oldVal, undefined, "oldVal");
+		done();
 	});
 
-	stop();
+	var done = assert.async();
 
 });
 
-test("can.Compute.read can read a promise-like (#82)", function(){
+QUnit.test("can.Compute.read can read a promise-like (#82)", function(assert) {
 	var data = {
 		promiseLike: {
 			then: function(resolve) {
@@ -53,32 +53,32 @@ test("can.Compute.read can read a promise-like (#82)", function(){
 	});
 	canReflect.onValue(c, function(newVal, oldVal){
 		calls++;
-		equal(calls, 1, "only one call");
-		equal(newVal, "Something", "new value");
-		equal(oldVal, undefined, "oldVal");
-		start();
+		assert.equal(calls, 1, "only one call");
+		assert.equal(newVal, "Something", "new value");
+		assert.equal(oldVal, undefined, "oldVal");
+		done();
 	});
 
-	stop();
+	var done = assert.async();
 
 });
 
-test('can.compute.reads', function(){
-	deepEqual( observeReader.reads("@foo"),
+QUnit.test('can.compute.reads', function(assert) {
+	assert.deepEqual( observeReader.reads("@foo"),
 		[{key: "foo", at: true}]);
 
-	deepEqual( observeReader.reads("@foo.bar"),
+	assert.deepEqual( observeReader.reads("@foo.bar"),
 		[{key: "foo", at: true}, {key: "bar", at: false}]);
 
-	deepEqual( observeReader.reads("@foo\\.bar"),
+	assert.deepEqual( observeReader.reads("@foo\\.bar"),
 		[{key: "foo.bar", at: true}]);
 
-	deepEqual( observeReader.reads("foo.bar@zed"),
+	assert.deepEqual( observeReader.reads("foo.bar@zed"),
 		[{key: "foo", at: false},{key: "bar", at: false},{key: "zed", at: true}]);
 
 });
 
-test('able to read things like can-define', 3, function(){
+QUnit.test('able to read things like can-define', 3, function(assert) {
 	var obj = eventQueue({});
 	var prop = "PROP";
 	Object.defineProperty(obj, "prop",{
@@ -99,16 +99,16 @@ test('able to read things like can-define', 3, function(){
 	var c = new Observation(function(){
 		var value = observeReader.read(data,observeReader.reads("obj.prop"),{
 			foundObservable: function(obs, index){
-				equal(obs, obj, "got an observable");
-				equal(index,1, "got the right index");
+				assert.equal(obs, obj, "got an observable");
+				assert.equal(index,1, "got the right index");
 			}
 		}).value;
-		equal(value, "PROP");
+		assert.equal(value, "PROP");
 	});
 	canReflect.onValue(c, function(){});
 });
 
-test("foundObservable called with observable object (#7)", function(){
+QUnit.test("foundObservable called with observable object (#7)", function(assert) {
 	var map = new SimpleMap({
 		isSaving: function(){
 			ObservationRecorder.add(this, "_saving");
@@ -120,7 +120,7 @@ test("foundObservable called with observable object (#7)", function(){
 	var c = new Observation(function(){
 		observeReader.read(map,observeReader.reads("isSaving"),{
 			foundObservable: function(obs){
-				QUnit.equal(obs, map);
+				assert.equal(obs, map);
 			},
 			callMethodsOnObservables: true
 		});
@@ -128,41 +128,41 @@ test("foundObservable called with observable object (#7)", function(){
 	canReflect.onValue(c, function(){});
 });
 
-test("can read from strings", function(){
+QUnit.test("can read from strings", function(assert) {
 	var context = " hi there ";
 	var result =  observeReader.read(context,observeReader.reads("trim"),{});
-	QUnit.equal(
+	assert.equal(
 		result.value(context),
 		context.trim(context),
 		'trim method works'
 	);
 });
 
-test("read / write to SimpleMap", function(){
+QUnit.test("read / write to SimpleMap", function(assert) {
 	var map = new SimpleMap();
 	var c = new Observation(function(){
 		var data = observeReader.read(map,observeReader.reads("value"),{
 			foundObservable: function(obs){
-				QUnit.equal(obs, map, "got map");
+				assert.equal(obs, map, "got map");
 			}
 		});
 		return data.value;
 	});
 	canReflect.onValue(c, function(newVal){
-		QUnit.equal(newVal, 1, "got updated");
+		assert.equal(newVal, 1, "got updated");
 	});
 	observeReader.write(map,"value",1);
 });
 
-test("write deep in SimpleMap", function(){
+QUnit.test("write deep in SimpleMap", function(assert) {
 	var map = new SimpleMap();
 	observeReader.write(map,"foo", new SimpleMap());
 	observeReader.write(map,"foo.bar", 1);
 
-	QUnit.equal(map.get("foo").get("bar"), 1, "value set");
+	assert.equal(map.get("foo").get("bar"), 1, "value set");
 });
 
-test("write to compute in object", function(){
+QUnit.test("write to compute in object", function(assert) {
 	var value = 2;
 	var computeObject = {};
 	canReflect.assignSymbols(computeObject, {
@@ -178,10 +178,10 @@ test("write to compute in object", function(){
 
 	observeReader.write(obj,"compute", 3);
 
-	QUnit.equal(value, 3, "value set");
+	assert.equal(value, 3, "value set");
 });
 
-test("write to a map in a compute", function(){
+QUnit.test("write to a map in a compute", function(assert) {
 
 	var map = new SimpleMap({complete: true});
 	var computeObject = {};
@@ -197,57 +197,57 @@ test("write to a map in a compute", function(){
 
 	observeReader.write(computeObject, "complete", false);
 
-	QUnit.equal(map.attr("complete"), false, "value set");
+	assert.equal(map.attr("complete"), false, "value set");
 });
 
-QUnit.test("reads can be passed a number (can-stache#207)", function(){
+QUnit.test("reads can be passed a number (can-stache#207)", function(assert) {
 	var reads = observeReader.reads(0);
-	QUnit.deepEqual(reads, [{key: "0", at: false}], "number converted to string");
+	assert.deepEqual(reads, [{key: "0", at: false}], "number converted to string");
 
 });
 
-QUnit.test("can read primitive numbers (#88)", function(){
+QUnit.test("can read primitive numbers (#88)", function(assert) {
 	var reads = observeReader.reads("num@toFixed");
 	var toFixed = observeReader.read({
 		num: 5
 	}, reads, {}).value;
 
-	QUnit.equal(typeof toFixed, "function", "got to fixed");
+	assert.equal(typeof toFixed, "function", "got to fixed");
 
 });
 
-test("it returns null when promise getter is null #2", function(){
+QUnit.test("it returns null when promise getter is null #2", function(assert) {
 	var nullPromise = observeReader.read(null, observeReader.reads('value'));
-	QUnit.equal(typeof nullPromise,"object");
+	assert.equal(typeof nullPromise,"object");
 });
 
-QUnit.test("set onto observable objects and values", function(){
+QUnit.test("set onto observable objects and values", function(assert) {
 	var map = new SimpleMap();
 	observeReader.write({map: map},"map", {a: "b"});
 
-	QUnit.equal(map.get("a"), "b", "merged");
+	assert.equal(map.get("a"), "b", "merged");
 
 	var simple = new SimpleObservable();
 	observeReader.write({simple: simple},"simple", 1);
-	QUnit.equal(simple.get(), 1);
+	assert.equal(simple.get(), 1);
 });
 
-testHelpers.dev.devOnlyTest("functions are not called by read()", function() {
+testHelpers.dev.devOnlyTest("functions are not called by read()", function (assert) {
 	var func = function() {
-		QUnit.ok(false, "method called");
+		assert.ok(false, "method called");
 	};
 	var data = { func: func };
 	var reads = observeReader.reads("func");
 
 	observeReader.read(data, reads);
 
-	QUnit.ok(true);
+	assert.ok(true);
 });
 
-testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: true`", function() {
+testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: true`", function (assert) {
 	var teardown = testHelpers.dev.willWarn("can-stache-key: read() called with `callMethodsOnObservables: true`.");
 	var func = function() {
-		QUnit.ok(true, "method called");
+		assert.ok(true, "method called");
 	};
 	var data = new SimpleMap({ func: func });
 	var reads = observeReader.reads("func");
@@ -256,17 +256,17 @@ testHelpers.dev.devOnlyTest("a warning is given for `callMethodsOnObservables: t
 		callMethodsOnObservables: true
 	});
 
-	QUnit.equal(teardown(), 1, "warning displayed");
+	assert.equal(teardown(), 1, "warning displayed");
 });
 
-QUnit.test("writing to a null observable is ignored", function(){
+QUnit.test("writing to a null observable is ignored", function(assert) {
 	observeReader.write({},"foo.bar", "value");
 	observeReader.write(null,"bar", "value");
 	observeReader.write(null,"foo.bar", "value");
-	QUnit.ok(true, "all passed without error");
+	assert.ok(true, "all passed without error");
 });
 
-QUnit.test("parentHasKey and foundLastParent (#31)", function() {
+QUnit.test("parentHasKey and foundLastParent (#31)", function(assert) {
 	var hasKeys = function(obj, keys) {
 		canReflect.assignSymbols(obj, {
 			"can.hasKey": function(key) {
@@ -297,25 +297,25 @@ QUnit.test("parentHasKey and foundLastParent (#31)", function() {
 		actual = observeReader.read(parent, reads);
 		expected = testCases[key];
 
-		QUnit.equal(actual.value, expected.value, key + ".value");
-		QUnit.equal(actual.parent, expected.parent, key + ".parent");
-		QUnit.equal(actual.parentHasKey, expected.parentHasKey, key + ".parentHasKey");
-		QUnit.equal(actual.foundLastParent, expected.foundLastParent, key + ".foundLastParent");
+		assert.equal(actual.value, expected.value, key + ".value");
+		assert.equal(actual.parent, expected.parent, key + ".parent");
+		assert.equal(actual.parentHasKey, expected.parentHasKey, key + ".parentHasKey");
+		assert.equal(actual.foundLastParent, expected.foundLastParent, key + ".foundLastParent");
 	}
 });
 
-QUnit.test("objHasKeyAtIndex doesn't handle non-object types correctly (#33)", function () {
+QUnit.test("objHasKeyAtIndex doesn't handle non-object types correctly (#33)", function(assert) {
 	var result = observeReader.read(47, observeReader.reads("toFixed"));
-	QUnit.equal(typeof result.value, 'function');
-	QUnit.equal(result.parent, 47);
-	QUnit.equal(result.parentHasKey, true);
+	assert.equal(typeof result.value, 'function');
+	assert.equal(result.parent, 47);
+	assert.equal(result.parentHasKey, true);
 });
 
-QUnit.test("write to an object", function(){
+QUnit.test("write to an object", function(assert) {
 	var obj = {};
 	observeReader.write(obj,"value",1);
-	QUnit.deepEqual(obj,{value: 1});
+	assert.deepEqual(obj,{value: 1});
 	obj = {value: null};
 	observeReader.write(obj,"value",1);
-	QUnit.deepEqual(obj,{value: 1});
+	assert.deepEqual(obj,{value: 1});
 });
