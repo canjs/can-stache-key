@@ -14,6 +14,7 @@ QUnit.module('can-stache-key',{
 });
 
 QUnit.test("can read a promise (#179)", function(assert) {
+	var done = assert.async();
 	var data = {
 		promise: new Promise(function(resolve){
 			setTimeout(function(){
@@ -33,11 +34,12 @@ QUnit.test("can read a promise (#179)", function(assert) {
 		done();
 	});
 
-	var done = assert.async();
+
 
 });
 
 QUnit.test("can.Compute.read can read a promise-like (#82)", function(assert) {
+	var done = assert.async();
 	var data = {
 		promiseLike: {
 			then: function(resolve) {
@@ -59,7 +61,6 @@ QUnit.test("can.Compute.read can read a promise-like (#82)", function(assert) {
 		done();
 	});
 
-	var done = assert.async();
 
 });
 
@@ -78,7 +79,8 @@ QUnit.test('can.compute.reads', function(assert) {
 
 });
 
-QUnit.test('able to read things like can-define', 3, function(assert) {
+QUnit.test('able to read things like can-define', function(assert) {
+	assert.expect(3);
 	var obj = eventQueue({});
 	var prop = "PROP";
 	Object.defineProperty(obj, "prop",{
