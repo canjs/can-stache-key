@@ -321,3 +321,17 @@ QUnit.test("write to an object", function(assert) {
 	observeReader.write(obj,"value",1);
 	assert.deepEqual(obj,{value: 1});
 });
+
+QUnit.test(".then won't call bindings #49", function(assert){
+	var promiseIsh = {};
+	Object.defineProperty(promiseIsh,"then",{
+		get: function(){
+			ObservationRecorder.add(this, "then");
+		}
+	});
+	ObservationRecorder.start();
+	observeReader.read(promiseIsh, observeReader.reads("prop"));
+	var recordings = ObservationRecorder.stop();
+
+	assert.equal( recordings.keyDependencies.size, 0, "no key recordings");
+});

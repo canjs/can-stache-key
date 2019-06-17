@@ -11,6 +11,9 @@ var setValueSymbol = canSymbol.for("can.setValue");
 var isValueLikeSymbol = canSymbol.for("can.isValueLike");
 var peek = ObservationRecorder.ignore(canReflect.getKeyValue.bind(canReflect));
 var observeReader;
+var isPromiseLike = ObservationRecorder.ignore(function isPromiseLike(value){
+	return typeof value === "object" && value && typeof value.then === "function";
+});
 
 var bindName = Function.prototype.bind;
 //!steal-remove-start
@@ -209,7 +212,8 @@ observeReader = {
 			test: function(value){
 				// the first time we try reading from a promise, set it up for
 				//  special reflections.
-				if(canReflect.isPromise(value) || typeof value === "object" && value && typeof value.then === "function") {
+				if(canReflect.isPromise(value) ||
+					isPromiseLike(value)) {
 					canReflectPromise(value);
 				}
 
