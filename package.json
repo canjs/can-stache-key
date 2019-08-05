@@ -52,7 +52,7 @@
     "can-symbol": "^1.0.0"
   },
   "devDependencies": {
-    "can-observation": "^4.0.0-pre.2",
+    "can-observation": "^4.2.0",
     "can-event-queue": "<2.0.0",
     "can-simple-map": "^4.0.0",
     "can-simple-observable": "^2.0.0-pre.11",
